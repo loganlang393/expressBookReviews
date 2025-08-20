@@ -12,14 +12,34 @@ public_users.post("/register", (req,res) => {
 
 // Get the book list available in the shop
 public_users.get('/',function (req, res) {
+  let myPromise = new Promise((resolve, reject) => {
+    resolve(JSON.stringify(books, null, 4));
+  });
 
-  return res.status(300).send(JSON.stringify(books, null, 4));
+  myPromise.then((successMessage) => {
+    return res.status(300).send(successMessage);
+  }, (failMessage) => {
+    return res.status(300).json({message: "Failed to retrieve list of books"});
+  });
 });
 
 // Get book details based on ISBN
 public_users.get('/isbn/:isbn',function (req, res) {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+  const isbn = req.params.isbn;
+
+  let myPromise = new Promise((resolve, reject) => {
+    if(books[isbn]){
+        resolve(books[isbn]);
+    }else {
+        reject("Could not find a book with this isbn");
+    }
+  });
+
+  myPromise.then((successMessage) => {
+    return res.status(300).send(successMessage);
+  }, (failMessage) => {
+    return res.status(300).json({message: "Failed to retrieve list of books"});
+  });
  });
   
 // Get book details based on author
