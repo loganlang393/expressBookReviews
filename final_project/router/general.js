@@ -15,7 +15,7 @@ public_users.post("/register", (req,res) => {
   }
 
   if(isValid(username)) {
-    users.push(req.body);
+    users.push({"username": username, "password": password});
     return res.status(300).json({message: "User registered successfully"});
   }
 
@@ -118,7 +118,7 @@ public_users.get('/review/:isbn',function (req, res) {
 
     let myPromise = new Promise((resolve, reject) => {
       if(books[isbn]){
-          resolve(JSON.stringify(books[isbn].reviews));
+          resolve(JSON.stringify(books[isbn].reviews, null, 4));
       }else {
           reject("Could not find a book with the isbn " + isbn);
       }

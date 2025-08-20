@@ -12,9 +12,9 @@ const isValid = (username)=>{ //returns boolean
     })
 
     if(validUser.length > 0){
-        return true;
-    } else {
         return false;
+    } else {
+        return true;
     }
 }
 
@@ -25,11 +25,13 @@ const authenticatedUser = (username,password)=>{ //returns boolean
         return false;
     }
 
-    users.forEach((user) => {
-        if(user.username === username && user.password === password){
-            return true;
-        }
+    let authenticatedUsers = users.filter((user) => {
+        return user.username === username && user.password === password
     });
+
+    if(authenticatedUsers.length > 0){
+        return true;
+    }
 
     return false;
 }
@@ -48,7 +50,7 @@ regd_users.post("/login", (req,res) => {
     req.session.authorization = {
         accessToken, username
     }
-    return res.status(200).send("User successfully logged in");
+    return res.status(200).json({message: "User successfully logged in"});
   }
 
   return res.status(200).json({message: "User failed to login: Please enter correct username and password"});
@@ -56,8 +58,53 @@ regd_users.post("/login", (req,res) => {
 
 // Add a book review
 regd_users.put("/auth/review/:isbn", (req, res) => {
-  //Write your code here
-  return res.status(300).json({message: "Yet to be implemented"});
+  const isbn = req.params.isbn;
+  const review = req.body.review;
+  const user = req.session.authorization.username;
+
+  let myPromise = new Promise((resolve, reject) => {
+    if(books[isbn]){
+        if(books[isbn].reviews[user]){
+            books[isbn].reviews[user] = review;
+            resolve("Updated review to the book with ISBN " + isbn);
+        };
+
+        books[isbn].reviews[user] = review;
+        resolve("Added review to the book with ISBN " + isbn);
+    }else {
+        reject("Could not find a book with the isbn " + isbn);
+    }
+  });
+
+  myPromise.then((successMessage) => {
+    return res.status(300).json({message: successMessage});
+  }, (failMessage) => {
+    return res.status(300).json({message: failMessage});
+  });
+});
+
+regd_users.delete("/auth/review/:isbn", (req, res) => {
+  const isbn = req.params.isbn;
+  const user = req.session.authorization.username;
+
+  let myPromise = new Promise((resolve, reject) => {
+    if(books[isbn]){
+        if(books[isbn].reviews[user]){
+            delete books[isbn].reviews[user]
+            resolve("Removed review to the book with ISBN " + isbn);
+        }else {
+            reject("You have not left a review for the book with ISBN " + isbn);
+        }
+     }else {
+        reject("Could not find a book with the isbn " + isbn);
+    }
+  });
+
+  myPromise.then((successMessage) => {
+    return res.status(300).json({message: successMessage});
+  }, (failMessage) => {
+    return res.status(300).json({message: failMessage});
+  });
 });
 
 module.exports.authenticated = regd_users;
